@@ -27,44 +27,38 @@ router.post("/register/", async (req, res) => {
   }
 });
 
-router.post("/login/", (req, res) => {
-  User.findOne({ email: req.body.email }, (err, user) => {
-    if (!user)
-      return res.json({
-        loginSuccess: false,
-        message: "Auth failed, email not found",
-      });
-
-    user.comparePassword(req.body.password, (err, isMatch) => {
-      if (!isMatch)
-        return res.json({
-          loginSuccess: false,
-          message: "Wrong password",
-        });
-
-      user.generateToken((err, user) => {
-        if (err) return res.status(400).send(err);
-        res.cookie("w_authExp", user.tokenExp);
-        res.cookie("w_auth", user.token).status(200).json({
-          loginSuccess: true,
-          userId: user._id,
-        });
-      });
+router.post("/login/", async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) {
+      throw new Error("Authentication Error");
+    }
+    if (!(await user.comparePassword(req.body.password))) {
+      throw new Error("Authentication Error");
+    }
+    let token = await user.generateToken();
+    res.cookie("AUTH_TOKEN", token).status(200).json({
+      token,
+      user,
     });
-  });
+  } catch (error) {
+    res.status("400").send({ name: error.name, message: error.message });
+  }
 });
 
-router.get("/logout/", auth, (req, res) => {
-  User.findOneAndUpdate(
-    { _id: req.user._id },
-    { token: "", tokenExp: "" },
-    (err, doc) => {
-      if (err) return res.json({ success: false, err });
-      return res.status(200).send({
-        success: true,
-      });
-    }
-  );
+router.post("/logout/", auth, async (req, res) => {
+  try {
+    await User.findOneAndUpdate(
+      {
+        _id: req.user._id,
+        tokens: req.cookies.AUTH_TOKEN,
+      },
+      { $pull: { tokens: req.cookies.AUTH_TOKEN } }
+    );
+    res.status("200").send({ success: true });
+  } catch (error) {
+    res.status("400").send({ name: error.name, message: error.message });
+  }
 });
 
 module.exports = router;

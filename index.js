@@ -2,8 +2,10 @@ const express = require("express");
 const app = express();
 const path = require("path");
 const cookieParser = require("cookie-parser");
+
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
+  app.use(require("morgan")("dev"));
 }
 
 require("./dbConnect")();

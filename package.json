@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "react boiler plate",
   "main": "index.js",
-
   "scripts": {
     "start": "node server/index.js",
     "server": "nodemon server/index.js --ignore client/",
@@ -27,6 +26,7 @@
     "supports-color": "^7.1.0"
   },
   "devDependencies": {
+    "morgan": "^1.10.0",
     "nodemon": "^1.19.1"
   }
 }

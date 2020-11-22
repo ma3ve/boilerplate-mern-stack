@@ -6,6 +6,7 @@ let auth = async (req, res, next) => {
     let token = req.cookies.AUTH_TOKEN;
     if (!token) throw new Error("Token not provided");
     req.user = await User.findByToken(token);
+
     next();
   } catch (error) {
     return res

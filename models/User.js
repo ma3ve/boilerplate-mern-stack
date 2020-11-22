@@ -54,13 +54,16 @@ userSchema.pre("save", async function (next) {
 
 userSchema.methods.comparePassword = async function (plainPassword) {
   let isMatch = false;
-  isMatch = await isMatchbcrypt.compare(plainPassword, this.password);
+  isMatch = await bcrypt.compare(plainPassword, this.password);
   return isMatch;
 };
 
 userSchema.methods.generateToken = async function () {
   const user = this;
-  let token = jwt.sign(user._id.toHexString(), process.env.JWT_SECRET_KEY);
+  let token = jwt.sign(
+    { _id: user._id.toHexString() },
+    process.env.JWT_SECRET_KEY
+  );
   user.tokens.push(token);
   await user.save();
   return token;
